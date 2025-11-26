@@ -7,13 +7,24 @@
     <link rel="stylesheet" href="gambinohour.css"> 
 </head>
 <body>
-     <div id="title">Gambino Hour</div>
-     <div id="description">This is an hour timer, no more, no less.</div>
+    <div id="title">Gambino Hour</div>
+    <div id="description">Let Childish Gambino tell you how much time is left with this hour timer</div>
     <div id="timer-display">60:00</div>
 
     <div class="controls">
-        <button id="start-pause-btn">Start</button>
-        <button id="reset-btn">Reset</button>
+        <div class="buttons">
+            <button id="start-pause-btn">Start</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+
+        <label for="duration-select">Change Duration:</label>
+        <select id="duration-select">
+            <option value="60">60 minutes</option>
+            <option value="23">23 minutes</option>
+            <option value="20">20 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="10">10 minutes</option>
+        </select>
     </div>
 
     <audio id="timer-alarm" preload="auto"></audio>

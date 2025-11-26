@@ -9,41 +9,75 @@ body {
     background-color: black;
     color: white;
 }
-    #title {
-        font-size: 50px;
-        font-weight: bold;
-        margin: 30px;
-    }
-    #description {
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
+#title {
+    font-size: 50px;
+    font-weight: bold;
+    margin: 30px;
+}
+#description {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
 
-    #timer-display {
-        font-size: 4em;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 20px;
-        padding: 10px 20px;
+#timer-display {
+    font-size: 4em;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+}
 
-    }
+/* Control Layout - CHANGED */
+.controls {
+    display: flex;
+    flex-direction: column; /* STACK vertically */
+    gap: 15px; /* Increased gap for better vertical separation */
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* Button Styling - ADDED ORDER: 1 */
+.controls button {
+    order: 1; /* Pushes the buttons to the top of the column stack */
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: black;
+    color: white;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.controls button:hover {
+    opacity: 0.9;
+}
+
+/* 1. Label Style - ADDED ORDER: 2 */
+.controls label {
+    order: 2; /* Pushes the label below the buttons */
+    color: white; 
+    font-size: 1em;
+    font-weight: bold; 
+    align-self: center;
+}
+
+/* 2. Dropdown (Select Box) Styling - ADDED ORDER: 2 */
+#duration-select {
+    order: 2; /* Pushes the dropdown below the buttons */
+    /* Set Black/White colors */
+    background-color: black;
+    color: white;
     
-    .controls button {
-        padding: 10px 20px;
-        margin: 0 5px;
-        font-size: 1em;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        background-color: black;
-        color: white;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    
-    .controls button:hover {
-        opacity: 0.9;
-    }
-
+    /* Match button properties */
+    border: 2px solid #ccc;
+    border-radius: 8px; 
+    padding: 10px 20px; 
+    margin: 0 5px; 
+    font-size: 1em; 
+    cursor: pointer;
+    box-shadow: 0

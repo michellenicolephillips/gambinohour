@@ -1,10 +1,14 @@
 // Initial time: 60 minutes converted to seconds
-const INITIAL_TIME_SECONDS = 60 * 60; 
-let timeLeftInSeconds = INITIAL_TIME_SECONDS;
+// CHANGE: INITIAL_TIME_SECONDS is now defined as the current selected value on load
+// const INITIAL_TIME_SECONDS = 60 * 60; // REMOVE or COMMENT OUT THIS LINE
+
 let timerInterval = null;
 let isPaused = true;
-// FIX 1: Declare the target sound flag and initialize it to false
 let isTargetSoundPlayed = false; 
+
+// NEW: Variable to hold the current duration in seconds, initialized to 60 minutes.
+let currentDurationInSeconds = 60 * 60; 
+let timeLeftInSeconds = currentDurationInSeconds; // Initialize time left
 
 // NEW CONSTANT: Set the specific time (in seconds remaining)
 const min_10 = 10 * 60; 
@@ -17,11 +21,13 @@ const min_30 = 30 * 60; // 1800 seconds
 const min_45 = 45 * 60; // 2700 seconds
 
 
-// NEW ARRAYS: List of audio files to choose from 
+// NEW ARRAYS: List of audio files to choose from (No changes needed here)
 const MIN_10_AUDIO_FILES = [
     'audio/10min/10_minutes.mp3',
     'audio/10min/no_time_10_minutes.mp3'
 ];
+
+// ... (Rest of the audio lists remain the same) ...
 
 const MIN_15_AUDIO_FILES = [
     'audio/15min/15_min_i_think_2.mp3',
@@ -58,6 +64,9 @@ const timerDisplay = document.getElementById('timer-display');
 const startPauseBtn = document.getElementById('start-pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 const timerAlarm = document.getElementById('timer-alarm');
+// NEW: Get the dropdown element
+const durationSelect = document.getElementById('duration-select');
+
 
 /**
  * Converts total seconds into a MM:SS string format.
@@ -79,6 +88,14 @@ function formatTime(totalSeconds) {
 function updateDisplay() {
     timerDisplay.textContent = formatTime(timeLeftInSeconds);
 }
+
+// NEW FUNCTION: Sets the timer's starting duration based on the dropdown selection
+function setTimerDuration() {
+    // Get the value (in minutes) from the dropdown and convert to seconds
+    const minutes = parseInt(durationSelect.value, 10); 
+    currentDurationInSeconds = minutes * 60;
+}
+
 
 /**
  * Core function to decrease the time and handle the countdown end.
@@ -144,6 +161,11 @@ function countdown() {
  * Starts or Pauses the timer.
  */
 function toggleTimer() {
+    // If the timer is at zero, reset it to the current duration before starting
+    if (timeLeftInSeconds === 0 && isPaused) {
+        resetTimer();
+    }
+    
     if (isPaused) {
         // Start the timer
         isPaused = false;
@@ -153,14 +175,16 @@ function toggleTimer() {
         // Set interval to call countdown every 1000 milliseconds (1 second)
         timerInterval = setInterval(countdown, 1000);
         
-        // Play the initial start sound only if the timer is at its maximum duration
-        if (timeLeftInSeconds === INITIAL_TIME_SECONDS) {
-            const selectedStartSound = getRandomAudioFile(min_60);
+        // Play the initial start sound only if the timer is starting from its maximum duration
+        if (timeLeftInSeconds === currentDurationInSeconds) {
+            const startSoundDuration = currentDurationInSeconds; // Use the current duration as the key
+            const selectedStartSound = getRandomAudioFile(startSoundDuration);
+
             if (selectedStartSound) {
                 timerAlarm.src = selectedStartSound;
                 timerAlarm.load();
                 timerAlarm.play().catch(e => console.error("Error playing start audio:", e));
-                isTargetSoundPlayed = true; // Set flag so the timer doesn't play another sound at second 3599/3598, etc.
+                isTargetSoundPlayed = true; // Set flag so the timer doesn't play another sound too soon
                 console.log(`Playing start sound: ${selectedStartSound}`);
             }
         }
@@ -175,22 +199,25 @@ function toggleTimer() {
 }
 
 /**
- * Resets the timer back to 60:00.
+ * Resets the timer back to the currently selected duration.
  */
 function resetTimer() {
-    // Stop the interval if it's running
+    // 1. Get the new duration from the dropdown
+    setTimerDuration();
+
+    // 2. Stop the interval if it's running
     clearInterval(timerInterval);
     timerInterval = null;
 
-    // Reset variables
-    timeLeftInSeconds = INITIAL_TIME_SECONDS;
+    // 3. Reset time and flags
+    timeLeftInSeconds = currentDurationInSeconds;
     isPaused = true;
-    isTargetSoundPlayed = false; // Reset the flag on full reset
+    isTargetSoundPlayed = false; 
 
-    // Update display and button
+    // 4. Update display and button
     updateDisplay();
     startPauseBtn.textContent = 'Start';
-    startPauseBtn.classList.remove('paused'); // Ensure it looks like a fresh start button
+    startPauseBtn.classList.remove('paused'); 
 }
 
 function getRandomAudioFile(timeLeftInSeconds) {
@@ -209,8 +236,15 @@ function getRandomAudioFile(timeLeftInSeconds) {
         case min_23:
             audioList = MIN_23_AUDIO_FILES;
             break;
-        case min_60: // Used for the start sound in toggleTimer
-            audioList = MIN_60_AUDIO_FILES;
+        // CHANGE: Use min_60 only if the *current* duration matches 60 minutes
+        case min_60: 
+            if (currentDurationInSeconds === min_60) {
+                 audioList = MIN_60_AUDIO_FILES;
+            } else {
+                // For other start times (10, 15, 20, 23), we don't have start audio, 
+                // so we fall through or use null.
+                return null;
+            }
             break;
         case min_30:
         case min_45:
@@ -235,5 +269,12 @@ function getRandomAudioFile(timeLeftInSeconds) {
 startPauseBtn.addEventListener('click', toggleTimer);
 resetBtn.addEventListener('click', resetTimer);
 
-// Initial display update when the page loads
+// NEW: Add event listener to the dropdown so changing the duration instantly resets the timer
+durationSelect.addEventListener('change', resetTimer);
+
+// 🚨 ADDITION HERE: Ensure dropdown is set to 60 minutes on every page load
+durationSelect.value = '60';
+
+// Initial setup when the page loads
+setTimerDuration(); // Set the initial duration based on the default dropdown value (60)
 updateDisplay();
