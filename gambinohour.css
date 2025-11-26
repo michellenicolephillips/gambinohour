@@ -8,6 +8,7 @@ body {
     margin: 0;
     background-color: black;
     color: white;
+}
     #title {
         font-size: 50px;
         font-weight: bold;
@@ -40,24 +41,9 @@ body {
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
-    // /* Default color for Start button */
-    // #start-pause-btn {
-    //     background-color: black; 
-    // }
-    
-    // /* Color when the button is in the 'Paused' state (will say 'Resume') */
-    // #start-pause-btn.paused {
-    //     background-color: black; 
-    // }
-    
-    // #reset-btn {
-    //     background-color: black; 
-    // }
+
     
     .controls button:hover {
         opacity: 0.9;
     }
-
-}
 

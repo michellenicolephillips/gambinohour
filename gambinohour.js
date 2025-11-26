@@ -3,20 +3,21 @@ const INITIAL_TIME_SECONDS = 60 * 60;
 let timeLeftInSeconds = INITIAL_TIME_SECONDS;
 let timerInterval = null;
 let isPaused = true;
+// FIX 1: Declare the target sound flag and initialize it to false
+let isTargetSoundPlayed = false; 
 
-// NEW CONSTANT: Set the specific time (20 minutes = 1200 seconds)
+// NEW CONSTANT: Set the specific time (in seconds remaining)
 const min_10 = 10 * 60; 
-const min_15 = 15 * 60; 
-const min_20 = 20 * 60; 
-const min_23 = 23 * 60; 
-const min_60 = 60 * 60; 
+const min_15 = 15 * 60; // 900 seconds
+const min_20 = 20 * 60; // 1200 seconds
+const min_23 = 23 * 60; // 1380 seconds
+const min_60 = 60 * 60; // 3600 seconds (This is the start time, used only for the start sound)
 
-const min_30 = 30 * 60; 
-const min_45 = 45 * 60; 
+const min_30 = 30 * 60; // 1800 seconds
+const min_45 = 45 * 60; // 2700 seconds
 
 
-
-// NEW ARRAY: List of audio files to choose from (Ensure these files are in the same folder)
+// NEW ARRAYS: List of audio files to choose from 
 const MIN_10_AUDIO_FILES = [
     'audio/10min/10_minutes.mp3',
     'audio/10min/no_time_10_minutes.mp3'
@@ -83,24 +84,40 @@ function updateDisplay() {
  * Core function to decrease the time and handle the countdown end.
  */
 function countdown() {
+    // FIX 2: Reset the flag immediately after the time check, 
+    // but before decrementing, so a *new* time check can trigger the audio.
+    // If the audio played on the previous second, we are now ready for the next target.
+    if (isTargetSoundPlayed) {
+        isTargetSoundPlayed = false;
+    }
+
     if (timeLeftInSeconds > 0) {
         timeLeftInSeconds--;
         updateDisplay();
         
-        // CHECK FOR TARGET TIME (20:00)
-        let audioLengthTimes = [min_10, min_15, min_20, min_23, min_30, min_45, min_60, 0]
-        if (audioLengthTimes.contains(timeLeftInSeconds) && !isTargetSoundPlayed) {
+        // This array should only contain the times you want to trigger a sound at.
+        // min_60 is only used on start, so it's not needed here unless you want a repeat sound.
+        let audioLengthTimes = [min_10, min_15, min_20, min_23, min_30, min_45, 0];
+        
+        if (audioLengthTimes.includes(timeLeftInSeconds) && !isTargetSoundPlayed) {
             // 1. Select a random sound file
             const selectedSound = getRandomAudioFile(timeLeftInSeconds);
             
-            // 2. Set the audio element's source and load it
-            timerAlarm.src = selectedSound;
-            timerAlarm.load(); 
-            
-            // 3. Play the audio
-            timerAlarm.play();
-            isTargetSoundPlayed = true; // Set flag to prevent repeated playing
-            console.log(`Playing random sound: ${selectedSound} at 20:00`);
+            if (selectedSound) {
+                // 2. Set the audio element's source and load it
+                timerAlarm.src = selectedSound;
+                // FIX 3: Add event listener to reset the flag *after* the sound finishes playing
+                timerAlarm.onended = () => {
+                    isTargetSoundPlayed = false;
+                    timerAlarm.onended = null; // Clear the handler after use
+                };
+                timerAlarm.load(); 
+                
+                // 3. Play the audio
+                timerAlarm.play().catch(e => console.error("Error playing audio:", e));
+                isTargetSoundPlayed = true; // Set flag to prevent immediate repeat playing
+                console.log(`Playing random sound: ${selectedSound} at ${formatTime(timeLeftInSeconds)}`);
+            }
         }
 
     } else {
@@ -109,8 +126,13 @@ function countdown() {
         timerInterval = null;
         isPaused = true;
         
-        // Optional: Play a final sound when the timer ends
-        // (You might want a different, dedicated sound for 00:00 here)
+        // Ensure the 0-second audio plays when the timer hits zero
+        const selectedEndSound = getRandomAudioFile(0);
+        if (selectedEndSound) {
+            timerAlarm.src = selectedEndSound;
+            timerAlarm.load();
+            timerAlarm.play().catch(e => console.error("Error playing end audio:", e));
+        }
         
         startPauseBtn.textContent = 'Start';
         startPauseBtn.classList.add('paused');
@@ -130,12 +152,17 @@ function toggleTimer() {
 
         // Set interval to call countdown every 1000 milliseconds (1 second)
         timerInterval = setInterval(countdown, 1000);
-        if (timeLeftInSeconds === min_60) {
+        
+        // Play the initial start sound only if the timer is at its maximum duration
+        if (timeLeftInSeconds === INITIAL_TIME_SECONDS) {
             const selectedStartSound = getRandomAudioFile(min_60);
-            timerAlarm.src = selectedStartSound;
-            timerAlarm.load();
-            timerAlarm.play();
-            console.log(`Playing start sound: ${selectedStartSound}`);
+            if (selectedStartSound) {
+                timerAlarm.src = selectedStartSound;
+                timerAlarm.load();
+                timerAlarm.play().catch(e => console.error("Error playing start audio:", e));
+                isTargetSoundPlayed = true; // Set flag so the timer doesn't play another sound at second 3599/3598, etc.
+                console.log(`Playing start sound: ${selectedStartSound}`);
+            }
         }
     } else {
         // Pause the timer
@@ -158,6 +185,7 @@ function resetTimer() {
     // Reset variables
     timeLeftInSeconds = INITIAL_TIME_SECONDS;
     isPaused = true;
+    isTargetSoundPlayed = false; // Reset the flag on full reset
 
     // Update display and button
     updateDisplay();
@@ -166,36 +194,41 @@ function resetTimer() {
 }
 
 function getRandomAudioFile(timeLeftInSeconds) {
-    let randomIndex = 0;
+    let audioList = null;
 
     switch (timeLeftInSeconds) {
         case min_10:
-            randomIndex = Math.floor(Math.random() * MIN_10_AUDIO_FILES.length);
-            return MIN_10_AUDIO_FILES[randomIndex];
+            audioList = MIN_10_AUDIO_FILES;
+            break;
         case min_15:
-            randomIndex = Math.floor(Math.random() * MIN_15_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return MIN_15_AUDIO_FILES[randomIndex];
+            audioList = MIN_15_AUDIO_FILES;
+            break;
         case min_20:
-                randomIndex = Math.floor(Math.random() * MIN_20_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return MIN_20_AUDIO_FILES[randomIndex];        
+            audioList = MIN_20_AUDIO_FILES;
+            break;
         case min_23:
-            randomIndex = Math.floor(Math.random() * MIN_23_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return MIN_23_AUDIO_FILES[randomIndex];        
-        case min_60:
-            randomIndex = Math.floor(Math.random() * MIN_60_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return MIN_60_AUDIO_FILES[randomIndex];
+            audioList = MIN_23_AUDIO_FILES;
+            break;
+        case min_60: // Used for the start sound in toggleTimer
+            audioList = MIN_60_AUDIO_FILES;
+            break;
         case min_30:
         case min_45:
-            randomIndex = Math.floor(Math.random() * RUNNING_OUT_OF_TIME_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return RUNNING_OUT_OF_TIME_AUDIO_FILES[randomIndex];
+            audioList = RUNNING_OUT_OF_TIME_AUDIO_FILES;
+            break;
         case 0:
-            randomIndex = Math.floor(Math.random() * NO_TIME_AUDIO_FILES.length); // Assuming you meant MIN_20_AUDIO_FILES here
-            return NO_TIME_AUDIO_FILES[randomIndex];
+            audioList = NO_TIME_AUDIO_FILES;
+            break;
         default:
             return null; 
     }
-
-
+    
+    // Select random audio from the determined list
+    if (audioList && audioList.length > 0) {
+        const randomIndex = Math.floor(Math.random() * audioList.length);
+        return audioList[randomIndex];
+    }
+    return null;
 }
 
 // Attach event listeners to the buttons
