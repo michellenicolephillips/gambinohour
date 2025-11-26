@@ -1,0 +1,63 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: black;
+    color: white;
+    #title {
+        font-size: 50px;
+        font-weight: bold;
+        margin: 30px;
+    }
+    #description {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    #timer-display {
+        font-size: 4em;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+
+    }
+    
+    .controls button {
+        padding: 10px 20px;
+        margin: 0 5px;
+        font-size: 1em;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        background-color: black;
+        color: white;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    // /* Default color for Start button */
+    // #start-pause-btn {
+    //     background-color: black; 
+    // }
+    
+    // /* Color when the button is in the 'Paused' state (will say 'Resume') */
+    // #start-pause-btn.paused {
+    //     background-color: black; 
+    // }
+    
+    // #reset-btn {
+    //     background-color: black; 
+    // }
+    
+    .controls button:hover {
+        opacity: 0.9;
+    }
+
+}
+
